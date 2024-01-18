@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -131,7 +132,9 @@ func NewTest(t *testing.T) (c *Test) {
 	var cancel context.CancelFunc = func() {}
 
 	if deadline, ok := t.Deadline(); ok {
-		ctx, cancel = context.WithDeadline(context.Background(), deadline)
+		ctx, cancel = context.WithDeadline(ctx, deadline)
+	} else {
+		ctx, cancel = context.WithTimeout(ctx, 50*time.Minute)
 	}
 
 	c = &Test{

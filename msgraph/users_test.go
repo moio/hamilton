@@ -63,14 +63,14 @@ func TestUsersClient(t *testing.T) {
 		childGroup.Members = &msgraph.Members{user.DirectoryObject}
 		testGroupsClient_AddMembers(t, c, childGroup)
 
-		childGroupIds = append(childGroupIds, *childGroup.ID())
+		childGroupIds = append(childGroupIds, *childGroup.ID)
 	}
 
 	test.WithMetrics(func() {
-		testUsersClient_ListGroupMemberships(t, c, *user.ID(), childGroupIds)
+		testUsersClient_ListGroupMemberships(t, c, *user.ID, childGroupIds)
 	})
 
-	testGroupsClient_Delete(t, c, *parentGroup.ID())
+	testGroupsClient_Delete(t, c, *parentGroup.ID)
 	for _, id := range childGroupIds {
 		testGroupsClient_Delete(t, c, id)
 	}
@@ -186,7 +186,7 @@ func testUsersClient_ListGroupMemberships(t *testing.T, c *test.Test, id string,
 
 	actualGroupIds := map[string]bool{}
 	for _, group := range *groups {
-		actualGroupIds[*group.ID()] = true
+		actualGroupIds[*group.ID] = true
 	}
 
 	for _, expectedId := range expected {

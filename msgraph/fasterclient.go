@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/manicminer/hamilton/odata"
 )
 
 // OData is used to unmarshall OData metadata from an API response.
@@ -20,9 +20,9 @@ type OData struct {
 	MetadataEtag *string     `json:"@odata.metadataEtag"`
 	Type         *odata.Type `json:"@odata.type"`
 	Count        *int        `json:"@odata.count"`
-	NextLink     *odata.Link `json:"@odata.nextLink"`
+	NextLink     *string     `json:"@odata.nextLink"`
 	Delta        *string     `json:"@odata.delta"`
-	DeltaLink    *odata.Link `json:"@odata.deltaLink"`
+	DeltaLink    *string     `json:"@odata.deltaLink"`
 	Id           *odata.Id   `json:"@odata.id"`
 	EditLink     *odata.Link `json:"@odata.editLink"`
 	Etag         *string     `json:"@odata.etag"`
@@ -67,7 +67,7 @@ func (o *OData) UnmarshalJSON(data []byte) error {
 // - unmarshaled OData (if no odata is present in the response, or the content type is invalid, returns nil)
 // - unmarshaled result (as pointer to the specified resultType, normally a slice of structs)
 // - link to the next page (if present)
-func FasterFromResponse(resp *http.Response, resultType reflect.Type) (*OData, interface{}, *odata.Link, error) {
+func FasterFromResponse(resp *http.Response, resultType reflect.Type) (*OData, interface{}, *string, error) {
 	if resp == nil {
 		return nil, nil, nil, nil
 	}
@@ -106,7 +106,7 @@ func FasterFromResponse(resp *http.Response, resultType reflect.Type) (*OData, i
 }
 
 // fasterPerformRequest is used by the package to send an HTTP request to the API.
-func (c Client) fasterPerformRequest(req *http.Request, input FasterGetHttpRequestInput, resultType reflect.Type) (int, interface{}, *odata.Link, error) {
+func (c Client) fasterPerformRequest(req *http.Request, input FasterGetHttpRequestInput, resultType reflect.Type) (int, interface{}, *string, error) {
 	var status int
 
 	query := input.GetOData()
@@ -114,7 +114,7 @@ func (c Client) fasterPerformRequest(req *http.Request, input FasterGetHttpReque
 	req.Header.Add("Content-Type", input.GetContentType())
 
 	if c.Authorizer != nil {
-		token, err := c.Authorizer.Token(req.Context(), req)
+		token, err := c.Authorizer.Token()
 		if err != nil {
 			return status, nil, nil, err
 		}
@@ -128,7 +128,7 @@ func (c Client) fasterPerformRequest(req *http.Request, input FasterGetHttpReque
 	var resp *http.Response
 	var o *OData
 	var result interface{}
-	var nextLink *odata.Link
+	var nextLink *string
 	var err error
 
 	var reqBody []byte
